@@ -1,4 +1,5 @@
-import PySimpleGUI as sg
+import tkinter as tk
+from tkinter import filedialog, messagebox
 import subprocess
 import os
 
@@ -17,47 +18,63 @@ def run_script(script_path, csv_path):
     except Exception as e:
         return str(e)
 
-def main():
-    sg.theme('SystemDefault')
-    layout = [
-        [sg.Text('Selecione o arquivo CSV para processar:')],
-        [sg.Input(key='-CSV-', enable_events=True), sg.FileBrowse(file_types=(('CSV Files', '*.csv'),))],
-        [sg.Text('Escolha o(s) processo(s) a aplicar:')],
-    ]
-    for i, (name, _) in enumerate(PROCESS_SCRIPTS):
-        layout.append([sg.Checkbox(name, key=f'-PROC{i}-')])
-    layout += [
-        [sg.Checkbox('Aplicar todos', key='-ALL-')],
-        [sg.Button('Processar'), sg.Button('Sair')],
-        [sg.Output(size=(80, 20))]
-    ]
-    window = sg.Window('ERP Filtros de Tabela - Processador CSV', layout)
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title('ERP Filtros de Tabela - Processador CSV')
+        self.csv_path = tk.StringVar()
+        self.check_vars = [tk.BooleanVar() for _ in PROCESS_SCRIPTS]
+        self.all_var = tk.BooleanVar()
 
-    while True:
-        event, values = window.read()
-        if event in (sg.WIN_CLOSED, 'Sair'):
-            break
-        if event == '-ALL-':
-            for i in range(len(PROCESS_SCRIPTS)):
-                elem = window[f'-PROC{i}-']
-                if elem is not None:
-                    elem.update(values['-ALL-'])
-        if event == 'Processar':
-            csv_path = values['-CSV-']
-            if not csv_path or not os.path.isfile(csv_path):
-                print('Por favor, selecione um arquivo CSV válido.')
-                continue
-            selected = [i for i in range(len(PROCESS_SCRIPTS)) if values.get(f'-PROC{i}-')]
-            if not selected:
-                print('Selecione pelo menos um processo.')
-                continue
-            for i in selected:
-                name, script = PROCESS_SCRIPTS[i]
-                print(f'Executando: {name}...')
-                output = run_script(script, csv_path)
-                print(output)
-            print('Processamento concluído.')
-    window.close()
+        tk.Label(root, text='Selecione o arquivo CSV para processar:').pack(anchor='w')
+        file_frame = tk.Frame(root)
+        file_frame.pack(fill='x')
+        tk.Entry(file_frame, textvariable=self.csv_path, width=60).pack(side='left', fill='x', expand=True)
+        tk.Button(file_frame, text='Procurar', command=self.browse_file).pack(side='left')
+
+        tk.Label(root, text='Escolha o(s) processo(s) a aplicar:').pack(anchor='w')
+        for i, (name, _) in enumerate(PROCESS_SCRIPTS):
+            tk.Checkbutton(root, text=name, variable=self.check_vars[i]).pack(anchor='w')
+        tk.Checkbutton(root, text='Aplicar todos', variable=self.all_var, command=self.toggle_all).pack(anchor='w')
+
+        btn_frame = tk.Frame(root)
+        btn_frame.pack(fill='x', pady=5)
+        tk.Button(btn_frame, text='Processar', command=self.process).pack(side='left')
+        tk.Button(btn_frame, text='Sair', command=root.quit).pack(side='left')
+
+        self.output = tk.Text(root, height=20, width=80)
+        self.output.pack(fill='both', expand=True)
+
+    def browse_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[('CSV Files', '*.csv')])
+        if file_path:
+            self.csv_path.set(file_path)
+
+    def toggle_all(self):
+        for var in self.check_vars:
+            var.set(self.all_var.get())
+
+    def process(self):
+        csv_path = self.csv_path.get()
+        if not csv_path or not os.path.isfile(csv_path):
+            messagebox.showerror('Erro', 'Por favor, selecione um arquivo CSV válido.')
+            return
+        selected = [i for i, var in enumerate(self.check_vars) if var.get()]
+        if not selected:
+            messagebox.showerror('Erro', 'Selecione pelo menos um processo.')
+            return
+        self.output.delete(1.0, tk.END)
+        for i in selected:
+            name, script = PROCESS_SCRIPTS[i]
+            self.output.insert(tk.END, f'Executando: {name}...\n')
+            output = run_script(script, csv_path)
+            self.output.insert(tk.END, output + '\n')
+        self.output.insert(tk.END, 'Processamento concluído.\n')
+
+def main():
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
 
 if __name__ == '__main__':
     main()
