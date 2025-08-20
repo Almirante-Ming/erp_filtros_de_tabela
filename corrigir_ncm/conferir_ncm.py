@@ -2,7 +2,9 @@ import csv
 
 def carregar_ncms_validos(arquivo_ncms_validos):
     ncms_validos = set()
-    with open(arquivo_ncms_validos, newline='') as f:
+    import os
+    ncms_path = os.path.join(os.path.dirname(__file__), arquivo_ncms_validos) if not os.path.isabs(arquivo_ncms_validos) else arquivo_ncms_validos
+    with open(ncms_path, newline='') as f:
         reader = csv.reader(f)
         for row in reader:
             if row:
@@ -10,8 +12,11 @@ def carregar_ncms_validos(arquivo_ncms_validos):
     return ncms_validos
 
 def processar_ncms_multicol(arquivo_entrada, ncms_validos, arquivo_saida, ncm_col_name='ncm'):
-    with open(arquivo_entrada, newline='') as f_entrada, \
-         open('invalidos.csv', 'w', newline='') as f_invalidos:
+    import os
+    entrada_path = os.path.abspath(arquivo_entrada)
+    invalidos_path = os.path.join(os.path.dirname(entrada_path), 'invalidos.csv')
+    with open(entrada_path, newline='') as f_entrada, \
+         open(invalidos_path, 'w', newline='') as f_invalidos:
         reader = csv.reader(f_entrada, delimiter=';')
         writer_invalidos = csv.writer(f_invalidos, delimiter=';')
         rows = []
@@ -23,9 +28,8 @@ def processar_ncms_multicol(arquivo_entrada, ncms_validos, arquivo_saida, ncm_co
                 break
         if ncm_idx is None:
             raise Exception(f"Coluna '{ncm_col_name}' não encontrada no arquivo CSV.")
-        formatted_header = [f'"{col.strip().replace("\"","")}"' for col in header]
-        rows.append(formatted_header)
-        writer_invalidos.writerow(formatted_header)
+        rows.append([col.strip() for col in header])
+        writer_invalidos.writerow([col.strip() for col in header])
         for row in reader:
             if not row or len(row) <= ncm_idx:
                 formatted_row = [f'"{cell.strip().replace("\"","")}"' for cell in row]
@@ -41,7 +45,7 @@ def processar_ncms_multicol(arquivo_entrada, ncms_validos, arquivo_saida, ncm_co
             if is_invalid:
                 original_row = [f'"{cell.strip().replace("\"","")}"' for cell in row]
                 writer_invalidos.writerow(original_row)
-    with open(arquivo_entrada, 'w', newline='') as f_saida:
+    with open(entrada_path, 'w', newline='') as f_saida:
         writer = csv.writer(f_saida, delimiter=';')
         writer.writerows(rows)
 
@@ -54,4 +58,4 @@ if __name__ == '__main__':
     arquivo_entrada = sys.argv[1]
     ncms_validos = carregar_ncms_validos(arquivo_ncms_validos)
     processar_ncms_multicol(arquivo_entrada, ncms_validos, arquivo_entrada)
-    print(f"Processamento concluído. O resultado foi escrito em '{arquivo_entrada}' e inválidos em 'invalidos.csv'")
+    print(f"Processamento concluído. O resultado foi escrito em '{arquivo_entrada}' e inválidos em 'invalidos.csv' na mesma pasta.")

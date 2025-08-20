@@ -64,12 +64,16 @@ class App:
             messagebox.showerror('Erro', 'Selecione pelo menos um processo.')
             return
         self.output.delete(1.0, tk.END)
-        for i in selected:
+        input_file = csv_path
+        base, ext = os.path.splitext(csv_path)
+        for idx, i in enumerate(selected):
             name, script = PROCESS_SCRIPTS[i]
+            output_file = f"{base}_mod{idx+1}{ext}"
             self.output.insert(tk.END, f'Executando: {name}...\n')
-            output = run_script(script, csv_path)
-            self.output.insert(tk.END, output + '\n')
-        self.output.insert(tk.END, 'Processamento concluído.\n')
+            result = subprocess.run(['python3', script, input_file, output_file], capture_output=True, text=True)
+            self.output.insert(tk.END, result.stdout + '\n' + result.stderr + '\n')
+            input_file = output_file
+        self.output.insert(tk.END, f'Processamento concluído. Arquivo final: {input_file}\n')
 
 def main():
     root = tk.Tk()

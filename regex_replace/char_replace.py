@@ -21,19 +21,24 @@ def substituir_caracteres_portugueses(texto):
     return texto
 
 def processar_csv_inplace(csv_file):
-    with open(csv_file, 'r', encoding='utf-8') as csv_input:
+    import os
+    csv_path = os.path.abspath(csv_file)
+    with open(csv_path, 'r', encoding='utf-8') as csv_input:
         reader = csv.reader(csv_input)
         rows = []
-        for row in reader:
+        for i, row in enumerate(reader):
             novo_row = []
-            for col in row:
-                content = col.strip()
-                if content.startswith('"') and content.endswith('"'):
-                    content = content[1:-1]
-                content = substituir_caracteres_portugueses(remover_acentos(content))
-                novo_row.append(f'"{content}"')
+            if i == 0:
+                novo_row = [col.strip() for col in row]
+            else:
+                for col in row:
+                    content = col.strip()
+                    if content.startswith('"') and content.endswith('"'):
+                        content = content[1:-1]
+                    content = substituir_caracteres_portugueses(remover_acentos(content))
+                    novo_row.append(f'"{content}"')
             rows.append(novo_row)
-    with open(csv_file, 'w', encoding='utf-8', newline='') as csv_output:
+    with open(csv_path, 'w', encoding='utf-8', newline='') as csv_output:
         writer = csv.writer(csv_output)
         writer.writerows(rows)
 

@@ -39,7 +39,9 @@ def main():
     if len(sys.argv) < 2:
         print('Uso: python dd-mm-yy_replace.py <arquivo_csv>')
         sys.exit(1)
+    import os
     arquivo_csv = sys.argv[1]
+    arquivo_csv = os.path.abspath(arquivo_csv)
     try:
         df = pd.read_csv(arquivo_csv, delimiter=';')
         for coluna in df.columns:
