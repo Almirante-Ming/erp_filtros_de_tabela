@@ -6,7 +6,6 @@ def remover_acentos(txt):
     return ''.join((c for c in unicodedata.normalize('NFD', txt) if unicodedata.category(c) != 'Mn'))
 
 def substituir_caracteres_portugueses(texto):
-    # Dicionário de substituição de caracteres
     substituicoes = {
         'ç': 'c', 'Ç': 'C',
         'ã': 'a', 'Ã': 'A',
@@ -16,10 +15,8 @@ def substituir_caracteres_portugueses(texto):
         'ó': 'o', 'ò': 'o', 'ô': 'o', 'ö': 'o', 'Ó': 'O', 'Ò': 'O', 'Ô': 'O', 'Ö': 'O',
         'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u', 'Ú': 'U', 'Ù': 'U', 'Û': 'U', 'Ü': 'U',
         'ñ': 'n', 'Ñ': 'N'
-        # Adicione mais caracteres conforme necessário
     }
-    
-    # Aplicar as substituições
+
     for original, substituto in substituicoes.items():
         texto = texto.replace(original, substituto)
     
@@ -36,7 +33,6 @@ def processar_csv_gerar_novo(input_csv, output_csv):
             novo_row = [substituir_caracteres_portugueses(remover_acentos(col)) for col in row]
             writer.writerow(novo_row)
 
-# Exemplo de uso:
 if __name__ == '__main__':
     arquivo_csv_original = './export.csv'
     novo_arquivo_csv = './arquivo_modificado.csv'
@@ -44,3 +40,4 @@ if __name__ == '__main__':
     processar_csv_gerar_novo(arquivo_csv_original, novo_arquivo_csv)
     
     print(f'Arquivo CSV modificado gerado em: {novo_arquivo_csv}')
+
