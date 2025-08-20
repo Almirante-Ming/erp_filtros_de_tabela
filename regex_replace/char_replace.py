@@ -34,10 +34,11 @@ def processar_csv_gerar_novo(input_csv, output_csv):
             writer.writerow(novo_row)
 
 if __name__ == '__main__':
-    arquivo_csv_original = './export.csv'
-    novo_arquivo_csv = './arquivo_modificado.csv'
+    arquivo_csv_original = 'input.csv'
+    novo_arquivo_csv = 'output.csv'
     
     processar_csv_gerar_novo(arquivo_csv_original, novo_arquivo_csv)
     
     print(f'Arquivo CSV modificado gerado em: {novo_arquivo_csv}')
+
 
