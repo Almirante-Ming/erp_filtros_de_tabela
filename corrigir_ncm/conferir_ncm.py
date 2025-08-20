@@ -1,4 +1,5 @@
 import csv
+# separe a coluna de ncm em um csv separado para conferir.
 
 def carregar_ncms_validos(arquivo_ncms_validos):
     ncms_validos = set()
